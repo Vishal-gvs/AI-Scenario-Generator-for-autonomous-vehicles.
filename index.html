@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Scenario Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F0F8FF;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+<div class="container mx-auto p-4 md:p-8 max-w-4xl">
+    <div class="bg-white rounded-lg shadow-lg p-6 md:p-8 mt-8">
+        <h3 class="text-xl font-bold text-[#00449E] mb-4">✨ AI Scenario Generator</h3>
+        <p class="text-md text-gray-700 mb-4">
+            Input a concept and generate a hypothetical AI failure scenario based on the principles discussed.
+        </p>
+        <textarea id="scenarioPrompt" class="w-full h-24 p-2 border border-gray-300 rounded-md focus:outline-none focus:border-[#005CB9]" placeholder="e.g., A car confused by a reflection of a traffic light."></textarea>
+        <button id="generateScenarioBtn" class="mt-4 px-6 py-2 bg-[#005CB9] text-white rounded-md hover:bg-[#00449E] transition-colors">✨ Generate Scenario</button>
+        <div id="scenarioOutput" class="mt-4 p-4 border border-gray-200 rounded-md bg-[#F0F8FF] min-h-[50px]">
+            <p id="scenarioText" class="text-gray-800 italic">Your generated scenario will appear here...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const scenarioPromptInput = document.getElementById('scenarioPrompt');
+    const generateScenarioBtn = document.getElementById('generateScenarioBtn');
+    const scenarioText = document.getElementById('scenarioText');
+
+    generateScenarioBtn.addEventListener('click', async () => {
+        const prompt = scenarioPromptInput.value.trim() || "A car confused by a reflection of a traffic light.";
+        scenarioText.innerHTML = 'Generating scenario...';
+        generateScenarioBtn.disabled = true;
+
+        const userPrompt = `Based on the concept of unpredictable AI failure modes in self-driving cars, generate a short, hypothetical scenario (max 100 words) involving a specific, novel failure related to "${prompt}".`;
+        let chatHistory = [];
+        chatHistory.push({ role: "user", parts: [{ text: userPrompt }] });
+        const payload = { contents: chatHistory };
+        const apiKey = "AIzaSyCX5lrdm0CaYicgmqfAXPLR28VDEsF-tkc"; // <-- Add your Gemini API key here
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (result.candidates && result.candidates.length > 0) {
+                const text = result.candidates[0].content.parts[0].text;
+                scenarioText.innerText = text;
+            } else {
+                scenarioText.innerText = 'Could not generate a scenario. Please try again.';
+            }
+        } catch (error) {
+            scenarioText.innerText = 'An error occurred. Please check the console.';
+            console.error('Error:', error);
+        } finally {
+            generateScenarioBtn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
